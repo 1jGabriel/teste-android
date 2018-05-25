@@ -12,19 +12,22 @@ import java.util.ArrayList;
 import java.util.List;
 
 import br.com.alura.leilao.R;
-import br.com.alura.leilao.model.Avaliador;
+import br.com.alura.leilao.formatter.FormataMoeda;
 import br.com.alura.leilao.model.Leilao;
 
 public class ListaLeilaoAdapter extends RecyclerView.Adapter<ListaLeilaoAdapter.ViewHolder> {
 
     private final List<Leilao> leiloes;
-    private final Avaliador avaliador;
-    private Context context;
+    private final Context context;
+    private OnItemClickListener onItemClickListener;
 
     public ListaLeilaoAdapter(Context context) {
         this.context = context;
         leiloes = new ArrayList<>();
-        avaliador = new Avaliador();
+    }
+
+    public void setOnItemClickListener(OnItemClickListener onItemClickListener) {
+        this.onItemClickListener = onItemClickListener;
     }
 
     @NonNull
@@ -45,21 +48,42 @@ public class ListaLeilaoAdapter extends RecyclerView.Adapter<ListaLeilaoAdapter.
         return leiloes.size();
     }
 
+    public void adiciona(List<Leilao> leiloes) {
+        int tamanhoInicial = this.leiloes.size();
+        this.leiloes.addAll(leiloes);
+        int tamanhoFinal = this.leiloes.size();
+        notifyItemRangeInserted(tamanhoInicial, tamanhoFinal);
+    }
+
     class ViewHolder extends RecyclerView.ViewHolder {
 
         private final TextView descricao;
         private final TextView maiorLance;
+        private Leilao leilao;
 
         public ViewHolder(View itemView) {
             super(itemView);
             descricao = itemView.findViewById(R.id.item_leilao_descricao);
             maiorLance = itemView.findViewById(R.id.item_leilao_maior_lance);
+            itemView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    onItemClickListener.onItemClick(leilao);
+                }
+            });
         }
 
         public void vincula(Leilao leilao) {
+            this.leilao = leilao;
             descricao.setText(leilao.getDescricao());
-            avaliador.avalia(leilao);
-            maiorLance.setText(avaliador.getMaiorDeTodos().toString());
+            maiorLance.setText(FormataMoeda
+                    .formata(leilao.getMaiorDeTodos()));
         }
+
     }
+
+    public interface OnItemClickListener {
+        void onItemClick(Leilao leilao);
+    }
+
 }
